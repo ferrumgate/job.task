@@ -190,8 +190,6 @@ describe('IpIntelligenceListTask', () => {
 
         const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
 
-
-
         const listsFunc = chai.spy.on(configService, 'getIpIntelligenceLists', () => [list]);
         const allIndexesFunc = chai.spy.on(esService, 'getAllIndexes', () => ['ip-intelligencelist-1']);
         const deleteIndexFunc = chai.spy.on(esService, 'deleteIndexes', (arg: any) => { });

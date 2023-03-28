@@ -1,6 +1,8 @@
 import { ESService, InputService, logger, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
 import { RedisOptions } from "./model/redisOptions";
 import { BroadcastService } from "./service/broadcastService";
+import { ESServiceExtended } from "./service/esServiceExtended";
+import { IpIntelligenceListsTask } from "./task/ipIntelligenceListsTask";
 import { SystemWatcherTask } from "./task/systemWatcherTask";
 
 
@@ -28,14 +30,19 @@ async function main() {
     const systemLog = new SystemLogService(redis, createRedis(redisOptions), encryptKey, 'job.task');
     const redisConfig = new RedisConfigWatchCachedService(redis, createRedis(redisOptions), systemLog, true, encryptKey, 'job.task');
     const bcastService = new BroadcastService();
-    const esService = new ESService(redisConfig);
+    const esService = new ESServiceExtended(redisConfig, bcastService);
+
     //follow system
     const systemWatcher = new SystemWatcherTask(redis, redisConfig, bcastService);
     await systemWatcher.start();
 
+    const ipIntelligenceListsTask = new IpIntelligenceListsTask(redis, redisConfig, esService, bcastService, inputService);
+    await ipIntelligenceListsTask.start();
+
     async function stopEverything() {
         await systemWatcher.stop();
         await redisConfig.stop();
+        await ipIntelligenceListsTask.stop();
     }
 
     process.on('SIGINT', async () => {

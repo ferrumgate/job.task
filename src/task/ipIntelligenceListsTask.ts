@@ -2,7 +2,7 @@
  * @follow ip intelligence lists and prepare for system
  */
 
-import { ConfigService, ESService, InputService, IpIntelligenceList, IpIntelligenceListService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService } from "rest.portal";
+import { ConfigService, ESService, InputService, IpIntelligenceList, IpIntelligenceListService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService, RedLockService } from "rest.portal";
 import { ConfigWatch } from "rest.portal/model/config";
 import { BroadcastService } from "../service/broadcastService";
 import { BaseTask } from "./task";
@@ -30,14 +30,21 @@ export class IpIntelligenceListTask {
                 needsExecute = true;
 
 
-        if (this.list.file && needsExecute) {
-            logger.info(`executing list ${this.list.name}`);
-            await this.intel.process(this.list);
-        } else if (this.list.http && needsExecute) {
+        if (this.list.file) {
+            if (needsExecute) {
+                logger.info(`ip intelligence list ${this.list.name} executing`);
+                await this.intel.process(this.list);
+            } else {
+                logger.info(`ip intelligence list ${this.list.name} not changed`);
+            }
+        }
+        if (this.list.http && needsExecute) {
             const diff = new Date().getTime() - this.lastExecuteTime;
             if (diff >= this.list.http.checkFrequency * 60 * 60 * 1000) {
-                logger.info(`executing list ${this.list.name}`);
+                logger.info(`ip intelligence list ${this.list.name} executing`);
                 await this.intel.process(this.list);
+            } else {
+                logger.info(`ip intelligence list ${this.list.name} not changed`);
             }
         }
         this.lastExecuteTime = new Date().getTime();
@@ -55,17 +62,22 @@ export class IpIntelligenceListsTask extends BaseTask {
     microTasks: IpIntelligenceListTask[] = [];
     timer: any;
     resetActivated = false;
+    listsChanged = false;
+    locker: RedLockService;
+    lastCheckSystem = 0;
     constructor(protected redisService: RedisService,
         protected configService: RedisConfigWatchCachedService,
         protected esService: ESService,
         protected bcastService: BroadcastService,
         protected inputService: InputService) {
         super();
+        this.locker = new RedLockService(redisService);
         this.ipIntel = new IpIntelligenceListService(redisService, inputService, esService);
         this.bcastService.on('configChanged', async (evt: ConfigWatch<any>) => {
             //watch system wide config changes
             await this.onConfigChanged(evt);
         })
+
     }
 
 
@@ -80,6 +92,10 @@ export class IpIntelligenceListsTask extends BaseTask {
                 logger.info(`es config changed`)
                 this.resetActivated = true;
             }
+            if (event.path.startsWith('/config/ipIntelligence/lists')) {
+                logger.info(`lists changed`)
+                this.listsChanged = true;
+            }
 
 
 
@@ -89,20 +105,33 @@ export class IpIntelligenceListsTask extends BaseTask {
     }
 
     async start() {
+        await this.locker.lock('/lock/ipIntelligence/execute/lists');
         this.timer = setIntervalAsync(async () => {
             await this.execute();
-            await this.executeES();
+            await this.executeSystemCheck();
         }, 60 * 1000)//check every minute;
     }
 
     async stop() {
+        await this.locker.release(true);
         if (this.timer)
             clearIntervalAsync(this.timer);
         this.timer = null;
     }
+    async executeSystemCheck() {
+        if (new Date().getTime() - this.lastCheckSystem < 1 * 60 * 60 * 1000)
+            return;
+        await this.executeES();
+        await this.executeListsFiles();
+    }
+    /**
+     * check es indexes to system lists
+     */
     async executeES() {
         try {
-            logger.info(`getting all ip intelligence lists`);
+
+
+            logger.info(`checking es to ip intelligence lists`);
             //get all lists
             const lists = await this.configService.getIpIntelligenceLists();
             const mappedLists = lists.map(y => {
@@ -121,44 +150,75 @@ export class IpIntelligenceListsTask extends BaseTask {
                     await this.esService.deleteIndexes([it]);
                 }
             }
+
         } catch (err) {
             logger.error(err);
         }
     }
+
+    /**
+     * check system status to system lists
+     */
+    async executeListsFiles() {
+        try {
+            logger.info(`check ip intelligence status to lists`);
+            const lists = await this.configService.getIpIntelligenceLists();
+
+            await this.ipIntel.compareSystemHealth(lists);
+
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+
+
     async handleItem(task: IpIntelligenceListTask) {
         await task.execute();
     }
 
     async execute() {
         try {
+            if (!this.locker.isLocked) {
+                logger.info(`could not grab lock`);
+                return;
+            };
             if (this.resetActivated)
                 await this.resetEverything();
-            logger.info(`getting all ip intelligence lists`);
+            logger.info(`checking ip intelligence lists`);
             //get all lists
             const lists = await this.configService.getIpIntelligenceLists();
 
             //check if all exits in out watch list
             for (const it of lists) {
-                if (!lists.find(y => y.id == it.id)) {//not found
+                if (!this.microTasks.find(y => y.list.id == it.id)) {//not found
+                    logger.info(`added ip intelligence to tasks ${it.name}`);
                     this.microTasks.push(new IpIntelligenceListTask(it, this.ipIntel));
                 }
             }
             //check reverse
-            this.microTasks = this.microTasks.filter(x => lists.find(y => y.id == x.list.id));
-            for (const it of this.microTasks) {
+            let tasks = this.microTasks.filter(x => lists.find(y => y.id == x.list.id) ? true : false);
+            for (const it of tasks) {
                 if (this.resetActivated) break;//
+                if (this.listsChanged) break;
                 await it.execute();
             }
+            if (this.resetActivated || this.listsChanged)
+                this.microTasks = [];//clear everything
             if (this.resetActivated)
                 await this.resetEverything();
 
         } catch (err) {
             logger.error(err);
+        } finally {
+            this.listsChanged = false;
         }
     }
 
     async startReconfigureES() {
-
+        if (!this.locker.isLocked) {
+            logger.info(`could not grab lock`);
+            return;
+        }
         const es = await this.configService.getES();
         if (es.host)
             await this.esService.reConfigure(es.host, es.user, es.pass);
@@ -174,6 +234,7 @@ export class IpIntelligenceListsTask extends BaseTask {
             await this.ipIntel.resetList(it);
         }
         this.resetActivated = false;
+        this.microTasks = [];
     }
 
 }
