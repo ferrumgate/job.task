@@ -9,9 +9,10 @@ import fs from 'fs';
 import { ESService, InputService, IpIntelligenceList, IpIntelligenceListService, RedisConfigWatchCachedService, RedisConfigWatchService, RedisService, SystemLogService, Tunnel, Util } from 'rest.portal';
 import { IpIntelligenceListsTask, IpIntelligenceListTask } from '../src/task/ipIntelligenceListsTask';
 import { RedisOptions } from '../src/model/redisOptions';
-import { BroadcastService } from '../src/service/broadcastService';
+
 import { SystemWatcherTask } from '../src/task/systemWatcherTask';
 import chaiSpy from 'chai-spies';
+import { BroadcastService } from 'rest.portal/service/broadcastService';
 
 
 chai.use(chaiHttp);

@@ -1,7 +1,6 @@
-import { ESService, InputService, logger, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
+import { ESService, ESServiceExtended, InputService, logger, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
+import { BroadcastService } from "rest.portal/service/broadcastService";
 import { RedisOptions } from "./model/redisOptions";
-import { BroadcastService } from "./service/broadcastService";
-import { ESServiceExtended } from "./service/esServiceExtended";
 import { IpIntelligenceListsTask } from "./task/ipIntelligenceListsTask";
 import { SystemWatcherTask } from "./task/systemWatcherTask";
 

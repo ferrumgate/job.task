@@ -1,6 +1,7 @@
 import { logger, RedisConfigWatchService, RedisService } from "rest.portal";
-import { BroadcastService } from "../service/broadcastService";
+
 import { ConfigWatch } from "rest.portal/model/config";
+import { BroadcastService } from "rest.portal/service/broadcastService";
 
 
 const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');

@@ -4,7 +4,7 @@
 
 import { ConfigService, ESService, InputService, IpIntelligenceList, IpIntelligenceListService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService, RedLockService } from "rest.portal";
 import { ConfigWatch } from "rest.portal/model/config";
-import { BroadcastService } from "../service/broadcastService";
+import { BroadcastService } from "rest.portal/service/broadcastService";
 import { BaseTask } from "./task";
 const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');
 

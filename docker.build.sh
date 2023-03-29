@@ -6,7 +6,7 @@ rm -rf node_modules/rest.portal2
 mkdir -p node_modules/rest.portal2
 cp -R node_modules/rest.portal/* node_modules/rest.portal2
 version=$(cat package.json | grep version | cut -d: -f2 | tr -d , | tr -d \" | tr -d " ")
-docker build -t job.task . --no-cache
+docker build -t job.task . $1
 docker tag job.task job.task:$version
 echo "job.task:$version builded"
 docker tag job.task registry.ferrumgate.zero/ferrumgate/job.task:$version
