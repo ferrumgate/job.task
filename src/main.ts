@@ -29,7 +29,7 @@ async function main() {
     const systemLog = new SystemLogService(redis, createRedis(redisOptions), encryptKey, 'job.task');
     const redisConfig = new RedisConfigWatchCachedService(redis, createRedis(redisOptions), systemLog, true, encryptKey, 'job.task');
     const bcastService = new BroadcastService();
-    const esService = new ESServiceExtended(redisConfig, bcastService);
+    const esService = new ESServiceExtended(redisConfig);
 
     //follow system
     const systemWatcher = new SystemWatcherTask(redis, redisConfig, bcastService);
