@@ -28,7 +28,3 @@ download, compile and npm link
     npm run build
 ```
 
-# notes
-
-lmdb library version is important. we are using `c` version 0.9.90 .
-please dont upgrade lmdb version.
