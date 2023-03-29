@@ -40,7 +40,7 @@ export class IpIntelligenceListTask {
         }
         if (this.list.http && needsExecute) {
             const diff = new Date().getTime() - this.lastExecuteTime;
-            if (diff >= this.list.http.checkFrequency * 60 * 60 * 1000) {
+            if (diff >= this.list.http.checkFrequency * 60 * 1000) {
                 logger.info(`ip intelligence list ${this.list.name} executing`);
                 await this.intel.process(this.list);
             } else {

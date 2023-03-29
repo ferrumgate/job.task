@@ -25,16 +25,20 @@
   },
   "homepage": "https://github.com/ferrumgate/job.task#readme",
   "dependencies": {
+    "decompress": "^4.2.1",
+    "decompress-targz": "^4.1.1",
     "ioredis": "^5.2.4",
     "log4js": "^6.7.1",
     "moment-timezone": "^0.5.41",
     "node-cache": "^5.1.2",
+    "recursive-readdir": "^2.2.3",
     "rest.portal": "file:../rest.portal/build/src",
     "set-interval-async": "^3.0.2"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",
     "@types/chai-spies": "^1.0.3",
+    "@types/decompress": "^4.2.4",
     "@types/ioredis": "^4.28.10",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.18",
