@@ -19,6 +19,7 @@ async function main() {
     const redisHost = process.env.REDIS_HOST || 'localhost:6379';
     const redisPassword = process.env.REDIS_PASS;
     const encryptKey = process.env.ENCRYPT_KEY || Util.randomNumberString(32);
+    const gatewayId = process.env.GATEWAY_ID || Util.randomNumberString(16);
 
     const redisOptions: RedisOptions = { host: redisHost, password: redisPassword };
 
@@ -26,22 +27,24 @@ async function main() {
 
     const redis = createRedis(redisOptions);
 
-    const systemLog = new SystemLogService(redis, createRedis(redisOptions), encryptKey, 'job.task');
-    const redisConfig = new RedisConfigWatchCachedService(redis, createRedis(redisOptions), systemLog, true, encryptKey, 'job.task');
+    const systemLog = new SystemLogService(redis, createRedis(redisOptions), encryptKey, `job.task/${gatewayId}`);
+    const redisConfig = new RedisConfigWatchCachedService(redis, createRedis(redisOptions), systemLog, true, encryptKey, `job.task/${gatewayId}`);
     const bcastService = new BroadcastService();
     const esService = new ESServiceExtended(redisConfig);
 
     //follow system
     const systemWatcher = new SystemWatcherTask(redis, redisConfig, bcastService);
     await systemWatcher.start();
-
-    const ipIntelligenceListsTask = new IpIntelligenceListsTask(redis, redisConfig, esService, bcastService, inputService);
-    await ipIntelligenceListsTask.start();
+    let ipIntelligenceListsTask: IpIntelligenceListsTask | null = null;
+    if (process.env.MODULE_IP_INTELLIGENCE == 'true') {
+        ipIntelligenceListsTask = new IpIntelligenceListsTask(redis, redisConfig, esService, bcastService, inputService);
+        await ipIntelligenceListsTask.start();
+    }
 
     async function stopEverything() {
         await systemWatcher.stop();
         await redisConfig.stop();
-        await ipIntelligenceListsTask.stop();
+        await ipIntelligenceListsTask?.stop();
     }
 
     process.on('SIGINT', async () => {
