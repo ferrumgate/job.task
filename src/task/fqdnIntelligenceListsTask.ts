@@ -1,21 +1,21 @@
 /**
- * @follow ip intelligence lists and prepare for system
+ * @follow fqdn intelligence lists and prepare for system
  */
 
-import { ConfigService, ESService, InputService, IpIntelligenceList, IpIntelligenceListService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService, RedisWatcherService, RedLockService } from "rest.portal";
+import { ConfigService, ESService, FqdnIntelligenceList, FqdnIntelligenceListService, InputService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService, RedisWatcherService, RedLockService } from "rest.portal";
 import { ConfigWatch } from "rest.portal/model/config";
 import { BroadcastService } from "rest.portal/service/broadcastService";
 import { BaseTask } from "./task";
 const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');
 
-export class IpIntelligenceListTask {
+export class FqdnIntelligenceListTask {
 
     lastExecuteTime: number = 0;
 
     /**
      *
      */
-    constructor(public list: IpIntelligenceList, protected intel: IpIntelligenceListService) {
+    constructor(public list: FqdnIntelligenceList, protected intel: FqdnIntelligenceListService) {
 
     }
     async execute() {
@@ -32,19 +32,19 @@ export class IpIntelligenceListTask {
 
         if (this.list.file) {
             if (needsExecute) {
-                logger.info(`ip intelligence list ${this.list.name} executing`);
+                logger.info(`fqdn intelligence list ${this.list.name} executing`);
                 await this.intel.process(this.list);
             } else {
-                logger.info(`ip intelligence list ${this.list.name} not changed`);
+                logger.info(`fqdn intelligence list ${this.list.name} not changed`);
             }
         }
         if (this.list.http && needsExecute) {
             const diff = new Date().getTime() - this.lastExecuteTime;
             if (diff >= this.list.http.checkFrequency * 60 * 1000) {
-                logger.info(`ip intelligence list ${this.list.name} executing`);
+                logger.info(`fqdn intelligence list ${this.list.name} executing`);
                 await this.intel.process(this.list);
             } else {
-                logger.info(`ip intelligence list ${this.list.name} not changed`);
+                logger.info(`fqdn intelligence list ${this.list.name} not changed`);
             }
         }
         this.lastExecuteTime = new Date().getTime();
@@ -54,12 +54,12 @@ export class IpIntelligenceListTask {
 }
 
 
-export class IpIntelligenceListsTask extends BaseTask {
+export class FqdnIntelligenceListsTask extends BaseTask {
     /**
      *
      */
-    ipIntel: IpIntelligenceListService;
-    microTasks: IpIntelligenceListTask[] = [];
+    fqdnIntel: FqdnIntelligenceListService;
+    microTasks: FqdnIntelligenceListTask[] = [];
     timer: any;
     resetActivated = false;
     listsChanged = false;
@@ -74,7 +74,7 @@ export class IpIntelligenceListsTask extends BaseTask {
         super();
         this.locker = new RedLockService(redisService);
         this.redisWatcher = new RedisWatcherService(redisService);
-        this.ipIntel = new IpIntelligenceListService(redisService, inputService, esService);
+        this.fqdnIntel = new FqdnIntelligenceListService(redisService, inputService, esService);
         this.bcastService.on('configChanged', async (evt: ConfigWatch<any>) => {
             //watch system wide config changes
             await this.onConfigChanged(evt);
@@ -92,9 +92,9 @@ export class IpIntelligenceListsTask extends BaseTask {
 
             if (event.path.startsWith('/config/es')) {
                 logger.info(`es config changed`)
-                this.resetActivated = true;
+                //this.resetActivated = true;
             }
-            if (event.path.startsWith('/config/ipIntelligence/lists')) {
+            if (event.path.startsWith('/config/fqdnIntelligence/lists')) {
                 logger.info(`lists changed`)
                 this.listsChanged = true;
             }
@@ -107,11 +107,11 @@ export class IpIntelligenceListsTask extends BaseTask {
     }
 
     async start() {
-        //await this.locker.lock('/lock/ipIntelligence/execute/lists');
+        //await this.locker.lock('/lock/fqdnIntelligence/execute/lists');
         await this.redisWatcher.start();
         this.timer = setIntervalAsync(async () => {
             if (!this.redisWatcher.isMaster) {
-                logger.info(`ip intelligence redis is not master`);
+                logger.info(`fqdn intelligence redis is not master`);
             }
             await this.execute();
             await this.executeSystemCheck();
@@ -129,29 +129,30 @@ export class IpIntelligenceListsTask extends BaseTask {
     async executeSystemCheck() {
         if (new Date().getTime() - this.lastCheckSystem < 1 * 60 * 60 * 1000)
             return;
-        await this.executeES();
+        // we are not using ES anymore
+        // await this.executeES();
         await this.executeListsFiles();
     }
     /**
      * check es indexes to system lists
      */
-    async executeES() {
+    /* async executeES() {
         try {
 
 
-            logger.info(`checking es to ip intelligence lists`);
+            logger.info(`checking es to fqdn intelligence lists`);
             //get all lists
-            const lists = await this.configService.getIpIntelligenceLists();
+            const lists = await this.configService.getFqdnIntelligenceLists();
             const mappedLists = lists.map(y => {
                 return {
-                    index: `ip-intelligence-list-${y.id.toLowerCase()}`,
+                    index: `fqdn-intelligence-list-${y.id.toLowerCase()}`,
                     item: y
                 }
             });
             //get all indexes from es
             const esLists = await this.esService.getAllIndexes();
             //and delete if not exits in db list
-            const filteredESLists = esLists.filter(x => x.includes('ip-intelligence-list-'));
+            const filteredESLists = esLists.filter(x => x.includes('fqdn-intelligence-list-'));
             for (const it of filteredESLists) {
                 if (!mappedLists.find(y => y.index == it)) {//not found
                     logger.info(`deleting es index ${it}`);
@@ -162,17 +163,17 @@ export class IpIntelligenceListsTask extends BaseTask {
         } catch (err) {
             logger.error(err);
         }
-    }
+    } */
 
     /**
      * check system status to system lists
      */
     async executeListsFiles() {
         try {
-            logger.info(`check ip intelligence status to lists`);
-            const lists = await this.configService.getIpIntelligenceLists();
+            logger.info(`check fqdn intelligence status to lists`);
+            const lists = await this.configService.getFqdnIntelligenceLists();
 
-            await this.ipIntel.compareSystemHealth(lists);
+            await this.fqdnIntel.compareSystemHealth(lists);
 
         } catch (err) {
             logger.error(err);
@@ -180,27 +181,27 @@ export class IpIntelligenceListsTask extends BaseTask {
     }
 
 
-    async handleItem(task: IpIntelligenceListTask) {
+    async handleItem(task: FqdnIntelligenceListTask) {
         await task.execute();
     }
 
     async execute() {
         try {
-            /*  if (!this.locker.isLocked) {
-                 logger.info(`could not grab lock`);
-                 return;
-             }; */
+            /* if (!this.locker.isLocked) {
+                logger.info(`could not grab lock`);
+                return;
+            }; */
             if (this.resetActivated)
                 await this.resetEverything();
-            logger.info(`checking ip intelligence lists`);
+            logger.info(`checking fqdn intelligence lists`);
             //get all lists
-            const lists = await this.configService.getIpIntelligenceLists();
+            const lists = await this.configService.getFqdnIntelligenceLists();
 
             //check if all exits in out watch list
             for (const it of lists) {
                 if (!this.microTasks.find(y => y.list.id == it.id)) {//not found
-                    logger.info(`added ip intelligence to tasks ${it.name}`);
-                    this.microTasks.push(new IpIntelligenceListTask(it, this.ipIntel));
+                    logger.info(`added fqdn intelligence to tasks ${it.name}`);
+                    this.microTasks.push(new FqdnIntelligenceListTask(it, this.fqdnIntel));
                 }
             }
             //check reverse
@@ -222,25 +223,24 @@ export class IpIntelligenceListsTask extends BaseTask {
         }
     }
 
-    /* async startReconfigureES() {
+    /*  async startReconfigureES() {
          if (!this.locker.isLocked) {
-            logger.info(`could not grab lock`);
-            return;
-        }
-        const es = await this.configService.getES();
-        if (es.host)
-            await this.esService.reConfigure(es.host, es.user, es.pass);
-        else
-            await this.esService.reConfigure(process.env.ES_HOST || 'https://localhost:9200', process.env.ES_USER, process.env.ES_PASS);
-
-
-    } 
-    */
+             logger.info(`could not grab lock`);
+             return;
+         }
+         const es = await this.configService.getES();
+         if (es.host)
+             await this.esService.reConfigure(es.host, es.user, es.pass);
+         else
+             await this.esService.reConfigure(process.env.ES_HOST || 'https://localhost:9200', process.env.ES_USER, process.env.ES_PASS);
+ 
+ 
+     } */
     async resetEverything() {
-        //await this.startReconfigureES()
-        const lists = await this.configService.getIpIntelligenceLists();
+        // await this.startReconfigureES()
+        const lists = await this.configService.getFqdnIntelligenceLists();
         for (const it of lists) {
-            await this.ipIntel.resetList(it);
+            await this.fqdnIntel.resetList(it);
         }
         this.resetActivated = false;
         this.microTasks = [];
