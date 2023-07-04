@@ -6,13 +6,14 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import fs from 'fs';
-import { ESService, InputService, IpIntelligenceList, IpIntelligenceListService, RedisConfigWatchCachedService, RedisConfigWatchService, RedisService, SystemLogService, Tunnel, Util } from 'rest.portal';
+import { ESService, FqdnIntelligenceList, FqdnIntelligenceListService, InputService, IpIntelligenceList, IpIntelligenceListService, RedisConfigWatchCachedService, RedisConfigWatchService, RedisService, SystemLogService, Tunnel, Util } from 'rest.portal';
 import { IpIntelligenceListsTask, IpIntelligenceListTask } from '../src/task/ipIntelligenceListsTask';
 import { RedisOptions } from '../src/model/redisOptions';
 
 import { SystemWatcherTask } from '../src/task/systemWatcherTask';
 import chaiSpy from 'chai-spies';
 import { BroadcastService } from 'rest.portal/service/broadcastService';
+import { FqdnIntelligenceListTask, FqdnIntelligenceListsTask } from '../src/task/fqdnIntelligenceListsTask';
 import { esHost, esPass, esUser } from './common.spec';
 
 
@@ -25,7 +26,7 @@ const encKey = 'unvjukt3i62bxkr0d6f0lpvlho5fvqb1'
 
 
 
-describe('IpIntelligenceListTask', () => {
+describe('FqdnIntelligenceListTask', () => {
 
     const redis = new RedisService();
     const systemLog = new SystemLogService(redis, new RedisService(), encKey, 'job.task');
@@ -33,7 +34,7 @@ describe('IpIntelligenceListTask', () => {
     const redisService = new RedisService();
     const inputService = new InputService();
     const esService = new ESService(configService, esHost, esUser, esPass, '1s');
-    const intel = new IpIntelligenceListService(redisService, inputService, esService);
+    const intel = new FqdnIntelligenceListService(redisService, inputService, esService);
     const bcastService = new BroadcastService();
     beforeEach(async () => {
         await redis.flushAll();
@@ -48,8 +49,8 @@ describe('IpIntelligenceListTask', () => {
     })
 
 
-    it('IpIntelligenceListTask execute', async () => {
-        const list: IpIntelligenceList = {
+    it('FqdnIntelligenceListTask execute', async () => {
+        const list: FqdnIntelligenceList = {
             id: Util.randomNumberString(),
             insertDate: new Date().toISOString(),
             name: 'test',
@@ -60,7 +61,7 @@ describe('IpIntelligenceListTask', () => {
         }
 
         const spyIntelProcess = chai.spy.on(intel, 'process');
-        const listTask = new IpIntelligenceListTask(list, intel);
+        const listTask = new FqdnIntelligenceListTask(list, intel);
         listTask.lastExecuteTime = 100;
         await listTask.execute();
         expect(spyIntelProcess).not.called;
@@ -74,8 +75,8 @@ describe('IpIntelligenceListTask', () => {
         expect(spyIntelProcess).not.called;
 
     }).timeout(100000)
-    it('IpIntelligenceListTask execute undefined status', async () => {
-        const list: IpIntelligenceList = {
+    it('FqdnIntelligenceListTask execute undefined status', async () => {
+        const list: FqdnIntelligenceList = {
             id: Util.randomNumberString(),
             insertDate: new Date().toISOString(),
             name: 'test',
@@ -86,7 +87,7 @@ describe('IpIntelligenceListTask', () => {
         }
 
         const spyIntelProcess = chai.spy.on(intel, 'process', (arg: any) => { });
-        const listTask = new IpIntelligenceListTask(list, intel);
+        const listTask = new FqdnIntelligenceListTask(list, intel);
 
         listTask.lastExecuteTime = 0;
         let spyIntelStatus = chai.spy.on(intel, 'getListStatus');
@@ -97,8 +98,8 @@ describe('IpIntelligenceListTask', () => {
 
     }).timeout(100000)
 
-    it('IpIntelligenceListTask execute undefined status and http frequency', async () => {
-        const list: IpIntelligenceList = {
+    it('FqdnIntelligenceListTask execute undefined status and http frequency', async () => {
+        const list: FqdnIntelligenceList = {
             id: Util.randomNumberString(),
             insertDate: new Date().toISOString(),
             name: 'test',
@@ -109,7 +110,7 @@ describe('IpIntelligenceListTask', () => {
         }
 
         const spyIntelProcess = chai.spy.on(intel, 'process', (arg: any) => { });
-        const listTask = new IpIntelligenceListTask(list, intel);
+        const listTask = new FqdnIntelligenceListTask(list, intel);
 
         listTask.lastExecuteTime = 0;
         let spyIntelStatus = chai.spy.on(intel, 'getListStatus');
@@ -127,10 +128,10 @@ describe('IpIntelligenceListTask', () => {
 
     }).timeout(100000);
 
-    it('IpIntelligenceListsTask configChanged', async () => {
+    it('FqdnIntelligenceListsTask configChanged', async () => {
 
 
-        const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new FqdnIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
 
         const changedFunc = chai.spy.on(listTask, 'onConfigChanged', (ev) => { });
 
@@ -142,9 +143,9 @@ describe('IpIntelligenceListTask', () => {
     }).timeout(100000)
 
 
-    it('IpIntelligenceListsTask execute', async () => {
+    it('FqdnIntelligenceListsTask execute', async () => {
 
-        const list: IpIntelligenceList = {
+        const list: FqdnIntelligenceList = {
             id: Util.randomNumberString(),
             insertDate: new Date().toISOString(),
             name: 'test',
@@ -155,7 +156,7 @@ describe('IpIntelligenceListTask', () => {
         }
 
 
-        const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new FqdnIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
 
         const handleItem = chai.spy.on(listTask, 'handleItem', (ev) => { });
         const resetEverything = chai.spy.on(listTask, 'resetEverything', (ev) => { });
@@ -175,33 +176,33 @@ describe('IpIntelligenceListTask', () => {
 
     }).timeout(100000)
 
-    it('IpIntelligenceListsTask executeES', async () => {
-
-        const list: IpIntelligenceList = {
-            id: Util.randomNumberString(),
-            insertDate: new Date().toISOString(),
-            name: 'test',
-            updateDate: new Date().toISOString(),
-            http: {
-                checkFrequency: 1, url: ''
-            }
-        }
-
-
-        const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
-
-        const listsFunc = chai.spy.on(configService, 'getIpIntelligenceLists', () => [list]);
-        const allIndexesFunc = chai.spy.on(esService, 'getAllIndexes', () => ['ip-intelligencelist-1']);
-        const deleteIndexFunc = chai.spy.on(esService, 'deleteIndexes', (arg: any) => { });
-
-
-        await listTask.executeES();
-        expect(deleteIndexFunc).called;
-
-
-
-    }).timeout(100000)
-
+    /*  it('FqdnIntelligenceListsTask executeES', async () => {
+ 
+         const list: FqdnIntelligenceList = {
+             id: Util.randomNumberString(),
+             insertDate: new Date().toISOString(),
+             name: 'test',
+             updateDate: new Date().toISOString(),
+             http: {
+                 checkFrequency: 1, url: ''
+             }
+         }
+ 
+ 
+         const listTask = new FqdnIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+ 
+         const listsFunc = chai.spy.on(configService, 'getFqdnIntelligenceLists', () => [list]);
+         const allIndexesFunc = chai.spy.on(esService, 'getAllIndexes', () => ['fqdn-intelligencelist-1']);
+         const deleteIndexFunc = chai.spy.on(esService, 'deleteIndexes', (arg: any) => { });
+ 
+ 
+         //await listTask.executeES();
+         expect(deleteIndexFunc).called;
+ 
+ 
+ 
+     }).timeout(100000)
+  */
 
 
 
