@@ -131,7 +131,7 @@ describe('FqdnIntelligenceListTask', () => {
     it('FqdnIntelligenceListsTask configChanged', async () => {
 
 
-        const listTask = new FqdnIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new FqdnIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
         const changedFunc = chai.spy.on(listTask, 'onConfigChanged', (ev) => { });
 
@@ -156,7 +156,7 @@ describe('FqdnIntelligenceListTask', () => {
         }
 
 
-        const listTask = new FqdnIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new FqdnIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
         const handleItem = chai.spy.on(listTask, 'handleItem', (ev) => { });
         const resetEverything = chai.spy.on(listTask, 'resetEverything', (ev) => { });

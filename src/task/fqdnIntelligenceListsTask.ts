@@ -67,13 +67,14 @@ export class FqdnIntelligenceListsTask extends BaseTask {
     redisWatcher: RedisWatcherService;
     lastCheckSystem = 0;
     constructor(protected redisService: RedisService,
+        protected redisIntelService: RedisService,
         protected configService: RedisConfigWatchCachedService,
         protected esService: ESService,
         protected bcastService: BroadcastService,
         protected inputService: InputService) {
         super();
         this.locker = new RedLockService(redisService);
-        this.redisWatcher = new RedisWatcherService(redisService);
+        this.redisWatcher = new RedisWatcherService(redisIntelService);
         this.fqdnIntel = new FqdnIntelligenceListService(redisService, inputService, esService);
         this.bcastService.on('configChanged', async (evt: ConfigWatch<any>) => {
             //watch system wide config changes
@@ -112,6 +113,7 @@ export class FqdnIntelligenceListsTask extends BaseTask {
         this.timer = setIntervalAsync(async () => {
             if (!this.redisWatcher.isMaster) {
                 logger.info(`fqdn intelligence redis is not master`);
+                return;
             }
             await this.execute();
             await this.executeSystemCheck();

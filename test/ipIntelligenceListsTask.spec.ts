@@ -130,7 +130,7 @@ describe('IpIntelligenceListTask', () => {
     it('IpIntelligenceListsTask configChanged', async () => {
 
 
-        const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new IpIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
         const changedFunc = chai.spy.on(listTask, 'onConfigChanged', (ev) => { });
 
@@ -155,7 +155,7 @@ describe('IpIntelligenceListTask', () => {
         }
 
 
-        const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new IpIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
         const handleItem = chai.spy.on(listTask, 'handleItem', (ev) => { });
         const resetEverything = chai.spy.on(listTask, 'resetEverything', (ev) => { });
@@ -188,7 +188,7 @@ describe('IpIntelligenceListTask', () => {
         }
 
 
-        const listTask = new IpIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
+        const listTask = new IpIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
         const listsFunc = chai.spy.on(configService, 'getIpIntelligenceLists', () => [list]);
         const allIndexesFunc = chai.spy.on(esService, 'getAllIndexes', () => ['ip-intelligencelist-1']);
