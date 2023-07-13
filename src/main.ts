@@ -24,9 +24,9 @@ async function main() {
     const redisIntelHost = process.env.REDIS_INTEL_HOST || 'localhost:6379';
     const redisIntelPassword = process.env.REDIS_INTEL_PASS;
 
-    const esIntelHost = process.env.ES_INTEL_HOST || 'https://localhost:9200';
-    const esIntelUser = process.env.ES_INTEL_USER || 'elastic'
-    const esIntelPass = process.env.ES_INTEL_PASS || '';
+    const esHost = process.env.ES_HOST || 'https://localhost:9200';
+    const esUser = process.env.ES_USER || 'elastic'
+    const esPass = process.env.ES_PASS || '';
 
     const encryptKey = process.env.ENCRYPT_KEY || Util.randomNumberString(32);
     const gatewayId = process.env.GATEWAY_ID || Util.randomNumberString(16);
@@ -44,8 +44,8 @@ async function main() {
     const systemLog = new SystemLogService(redis, createRedis(redisOptions), encryptKey, `job.task/${gatewayId}`);
     const redisConfig = new RedisConfigWatchCachedService(redis, createRedis(redisOptions), systemLog, true, encryptKey, `job.task/${gatewayId}`);
     const bcastService = new BroadcastService();
-    const esService = new ESServiceExtended(redisConfig);
-    const esIntelService = new ESService(redisConfig, esIntelHost, esIntelUser, esIntelPass);
+    const esIntelService = new ESServiceExtended(redisConfig, esHost, esUser, esPass);
+    //const esIntelService = new ESService(redisConfig, esIntelHost, esIntelUser, esIntelPass);
 
     //follow system
     const systemWatcher = new SystemWatcherTask(redis, redisConfig, bcastService);
@@ -53,14 +53,14 @@ async function main() {
     //ip intelligence
     let ipIntelligenceListsTask: IpIntelligenceListsTask | null = null;
     if (process.env.MODULE_IP_INTELLIGENCE == 'true') {
-        ipIntelligenceListsTask = new IpIntelligenceListsTask(redisIntel, redisConfig, esIntelService, bcastService, inputService);
+        ipIntelligenceListsTask = new IpIntelligenceListsTask(redis, redisIntel, redisConfig, esIntelService, bcastService, inputService);
         await ipIntelligenceListsTask.start();
     }
 
     //fqdn intelligence
     let fqdnIntelligenceListsTask: FqdnIntelligenceListsTask | null = null;
     if (process.env.MODULE_FQDN_INTELLIGENCE == 'true') {
-        fqdnIntelligenceListsTask = new FqdnIntelligenceListsTask(redisIntel, redisConfig, esIntelService, bcastService, inputService);
+        fqdnIntelligenceListsTask = new FqdnIntelligenceListsTask(redis, redisIntel, redisConfig, esIntelService, bcastService, inputService);
         await fqdnIntelligenceListsTask.start();
     }
 
