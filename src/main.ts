@@ -1,22 +1,16 @@
-import { ESService, ESServiceExtended, InputService, logger, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
+import { ESServiceExtended, InputService, logger, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
 import { BroadcastService } from "rest.portal/service/broadcastService";
 import { RedisOptions } from "./model/redisOptions";
+import { FqdnIntelligenceListsTask } from "./task/fqdnIntelligenceListsTask";
 import { IpIntelligenceListsTask } from "./task/ipIntelligenceListsTask";
 import { SystemWatcherTask } from "./task/systemWatcherTask";
-import { FqdnIntelligenceListsTask } from "./task/fqdnIntelligenceListsTask";
-
-
-
 
 function createRedis(opt: RedisOptions) {
 
     return new RedisService(opt.host, opt.password);
 }
 
-
 async function main() {
-
-
 
     const redisHost = process.env.REDIS_HOST || 'localhost:6379';
     const redisPassword = process.env.REDIS_PASS;
@@ -30,8 +24,6 @@ async function main() {
 
     const encryptKey = process.env.ENCRYPT_KEY || Util.randomNumberString(32);
     const gatewayId = process.env.GATEWAY_ID || Util.randomNumberString(16);
-
-
 
     const redisOptions: RedisOptions = { host: redisHost, password: redisPassword };
     const redisIntelOptions: RedisOptions = { host: redisIntelHost, password: redisIntelPassword };

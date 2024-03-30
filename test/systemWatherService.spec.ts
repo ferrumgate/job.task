@@ -1,17 +1,9 @@
-
-//docker run --net=host --name redis --rm -d redis
-
-
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-
 import fs from 'fs';
 import { RedisConfigWatchService, RedisService, SystemLogService, Tunnel, Util } from 'rest.portal';
 import { BroadcastService } from 'rest.portal/service/broadcastService';
-
 import { SystemWatcherTask } from '../src/task/systemWatcherTask';
-
-
 
 chai.use(chaiHttp);
 const expect = chai.expect;
@@ -42,7 +34,6 @@ describe('systemWatcherTask', () => {
         }
     }
 
-
     it('configChanged', async () => {
 
         const bcast = new BroadcastService();
@@ -63,11 +54,6 @@ describe('systemWatcherTask', () => {
         await Util.sleep(2000);
         expect(isConfigCalled).to.be.true;
 
-
     }).timeout(100000)
-
-
-
-
 
 })

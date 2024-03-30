@@ -1,21 +1,11 @@
-
-//docker run --net=host --name redis --rm -d redis
-
-
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-
-import fs from 'fs';
-import { ESService, FqdnIntelligenceList, FqdnIntelligenceListService, InputService, IpIntelligenceList, IpIntelligenceListService, RedisConfigWatchCachedService, RedisConfigWatchService, RedisService, SystemLogService, Tunnel, Util } from 'rest.portal';
-import { IpIntelligenceListsTask, IpIntelligenceListTask } from '../src/task/ipIntelligenceListsTask';
-import { RedisOptions } from '../src/model/redisOptions';
-
-import { SystemWatcherTask } from '../src/task/systemWatcherTask';
 import chaiSpy from 'chai-spies';
+import fs from 'fs';
+import { ESService, FqdnIntelligenceList, FqdnIntelligenceListService, InputService, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from 'rest.portal';
 import { BroadcastService } from 'rest.portal/service/broadcastService';
 import { FqdnIntelligenceListTask, FqdnIntelligenceListsTask } from '../src/task/fqdnIntelligenceListsTask';
 import { esHost, esPass, esUser } from './common.spec';
-
 
 chai.use(chaiHttp);
 chai.use(chaiSpy);
@@ -23,8 +13,6 @@ const expect = chai.expect;
 
 const tmpfolder = '/tmp/ferrumtest';
 const encKey = 'unvjukt3i62bxkr0d6f0lpvlho5fvqb1'
-
-
 
 describe('FqdnIntelligenceListTask', () => {
 
@@ -48,7 +36,6 @@ describe('FqdnIntelligenceListTask', () => {
         chai.spy.restore();
     })
 
-
     it('FqdnIntelligenceListTask execute', async () => {
         const list: FqdnIntelligenceList = {
             id: Util.randomNumberString(),
@@ -65,7 +52,6 @@ describe('FqdnIntelligenceListTask', () => {
         listTask.lastExecuteTime = 100;
         await listTask.execute();
         expect(spyIntelProcess).not.called;
-
 
         //set back it 0
         listTask.lastExecuteTime = 0;
@@ -124,12 +110,9 @@ describe('FqdnIntelligenceListTask', () => {
         expect(spyIntelStatus).called;
         expect(spyIntelProcess).not.called;
 
-
-
     }).timeout(100000);
 
     it('FqdnIntelligenceListsTask configChanged', async () => {
-
 
         const listTask = new FqdnIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
@@ -138,10 +121,7 @@ describe('FqdnIntelligenceListTask', () => {
         bcastService.emit('configChanged');
         expect(changedFunc).called;
 
-
-
     }).timeout(100000)
-
 
     it('FqdnIntelligenceListsTask execute', async () => {
 
@@ -155,13 +135,11 @@ describe('FqdnIntelligenceListTask', () => {
             }
         }
 
-
         const listTask = new FqdnIntelligenceListsTask(redis, redis, configService, esService, bcastService, inputService);
 
         const handleItem = chai.spy.on(listTask, 'handleItem', (ev) => { });
         const resetEverything = chai.spy.on(listTask, 'resetEverything', (ev) => { });
         const listsFunc = chai.spy.on(configService, 'getIpIntelligenceLists', () => [list]);
-
 
         await listTask.execute();
         expect(handleItem).called;
@@ -171,8 +149,6 @@ describe('FqdnIntelligenceListTask', () => {
         await listTask.execute();
         expect(handleItem).called;
         expect(resetEverything).called;
-
-
 
     }).timeout(100000)
 
@@ -188,23 +164,16 @@ describe('FqdnIntelligenceListTask', () => {
              }
          }
  
- 
          const listTask = new FqdnIntelligenceListsTask(redis, configService, esService, bcastService, inputService);
  
          const listsFunc = chai.spy.on(configService, 'getFqdnIntelligenceLists', () => [list]);
          const allIndexesFunc = chai.spy.on(esService, 'getAllIndexes', () => ['fqdn-intelligencelist-1']);
          const deleteIndexFunc = chai.spy.on(esService, 'deleteIndexes', (arg: any) => { });
  
- 
          //await listTask.executeES();
          expect(deleteIndexFunc).called;
  
- 
- 
      }).timeout(100000)
   */
-
-
-
 
 })

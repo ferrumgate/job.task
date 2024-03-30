@@ -1,13 +1,12 @@
-/**
- * @follow fqdn intelligence lists and prepare for system
- */
-
-import { ConfigService, ESService, FqdnIntelligenceList, FqdnIntelligenceListService, InputService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService, RedisWatcherService, RedLockService } from "rest.portal";
+import { ESService, FqdnIntelligenceList, FqdnIntelligenceListService, InputService, logger, RedisConfigWatchCachedService, RedisService, RedisWatcherService, RedLockService } from "rest.portal";
 import { ConfigWatch } from "rest.portal/model/config";
 import { BroadcastService } from "rest.portal/service/broadcastService";
 import { BaseTask } from "./task";
 const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');
 
+/**
+ * @follow fqdn intelligence lists and prepare for system
+ */
 export class FqdnIntelligenceListTask {
 
     lastExecuteTime: number = 0;
@@ -28,7 +27,6 @@ export class FqdnIntelligenceListTask {
         else
             if (!status.hash)
                 needsExecute = true;
-
 
         if (this.list.file) {
             if (needsExecute) {
@@ -52,7 +50,6 @@ export class FqdnIntelligenceListTask {
     }
 
 }
-
 
 export class FqdnIntelligenceListsTask extends BaseTask {
     /**
@@ -83,7 +80,6 @@ export class FqdnIntelligenceListsTask extends BaseTask {
 
     }
 
-
     public async onConfigChanged(event: ConfigWatch<any>) {
         try {
             if (event.path.startsWith('/config/flush')) {
@@ -99,8 +95,6 @@ export class FqdnIntelligenceListsTask extends BaseTask {
                 logger.info(`lists changed`)
                 this.listsChanged = true;
             }
-
-
 
         } catch (err) {
             logger.error(err);
@@ -141,7 +135,6 @@ export class FqdnIntelligenceListsTask extends BaseTask {
     /* async executeES() {
         try {
 
-
             logger.info(`checking es to fqdn intelligence lists`);
             //get all lists
             const lists = await this.configService.getFqdnIntelligenceLists();
@@ -181,7 +174,6 @@ export class FqdnIntelligenceListsTask extends BaseTask {
             logger.error(err);
         }
     }
-
 
     async handleItem(task: FqdnIntelligenceListTask) {
         await task.execute();
@@ -235,7 +227,6 @@ export class FqdnIntelligenceListsTask extends BaseTask {
              await this.esService.reConfigure(es.host, es.user, es.pass);
          else
              await this.esService.reConfigure(process.env.ES_HOST || 'https://localhost:9200', process.env.ES_USER, process.env.ES_PASS);
- 
  
      } */
     async resetEverything() {

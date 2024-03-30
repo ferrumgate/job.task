@@ -1,13 +1,12 @@
-/**
- * @follow ip intelligence lists and prepare for system
- */
-
-import { ConfigService, ESService, InputService, IpIntelligenceList, IpIntelligenceListService, logger, RedisConfigService, RedisConfigWatchCachedService, RedisService, RedisWatcherService, RedLockService } from "rest.portal";
+import { ESService, InputService, IpIntelligenceList, IpIntelligenceListService, logger, RedisConfigWatchCachedService, RedisService, RedisWatcherService, RedLockService } from "rest.portal";
 import { ConfigWatch } from "rest.portal/model/config";
 import { BroadcastService } from "rest.portal/service/broadcastService";
 import { BaseTask } from "./task";
 const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');
 
+/**
+ * @follow ip intelligence lists and prepare for system
+ */
 export class IpIntelligenceListTask {
 
     lastExecuteTime: number = 0;
@@ -28,7 +27,6 @@ export class IpIntelligenceListTask {
         else
             if (!status.hash)
                 needsExecute = true;
-
 
         if (this.list.file) {
             if (needsExecute) {
@@ -52,7 +50,6 @@ export class IpIntelligenceListTask {
     }
 
 }
-
 
 export class IpIntelligenceListsTask extends BaseTask {
     /**
@@ -83,7 +80,6 @@ export class IpIntelligenceListsTask extends BaseTask {
 
     }
 
-
     public async onConfigChanged(event: ConfigWatch<any>) {
         try {
             if (event.path.startsWith('/config/flush')) {
@@ -99,8 +95,6 @@ export class IpIntelligenceListsTask extends BaseTask {
                 logger.info(`lists changed`)
                 this.listsChanged = true;
             }
-
-
 
         } catch (err) {
             logger.error(err);
@@ -139,7 +133,6 @@ export class IpIntelligenceListsTask extends BaseTask {
      */
     async executeES() {
         try {
-
 
             logger.info(`checking es to ip intelligence lists`);
             //get all lists
@@ -180,7 +173,6 @@ export class IpIntelligenceListsTask extends BaseTask {
             logger.error(err);
         }
     }
-
 
     async handleItem(task: IpIntelligenceListTask) {
         await task.execute();
@@ -234,7 +226,6 @@ export class IpIntelligenceListsTask extends BaseTask {
             await this.esService.reConfigure(es.host, es.user, es.pass);
         else
             await this.esService.reConfigure(process.env.ES_HOST || 'https://localhost:9200', process.env.ES_USER, process.env.ES_PASS);
-
 
     } 
     */
