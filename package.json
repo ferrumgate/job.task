@@ -1,10 +1,10 @@
 {
   "name": "job.task",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "description": "manages system wide tasks",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=development  DEBUG2=nock.* node ./node_modules/mocha/bin/mocha --exit --timeout 30000 --require ts-node/register test/**/**.spec.ts",
+    "test": "NODE_ENV=development  DEBUG2=nock.* node ./node_modules/mocha/bin/mocha --exit --timeout 30000 --require ts-node/register test/**/esDeleteTask.spec.ts",
     "testintegration": "DEBUG=nock.* node ./node_modules/mocha/bin/mocha --exit  --require ts-node/register test/**/*.spec.integration.ts",
     "build": "tsc ",
     "start": "tsc && NODE_ENV=development  node ./build/src/main.js",
@@ -16,7 +16,7 @@
     "url": "git+ssh://git@gitlab.com/ferrumgate/job.task.git"
   },
   "publishConfig": {
-    "tag": "rest.portal@1.15.0"
+    "tag": "rest.portal@2.0.0"
   },
   "author": "",
   "license": "ISC",
@@ -26,6 +26,7 @@
   "homepage": "https://github.com/ferrumgate/job.task#readme",
   "dependencies": {
     "@peculiar/webcrypto": "^1.4.5",
+    "axios": "^1.7.2",
     "decompress": "^4.2.1",
     "decompress-tar": "^4.1.1",
     "decompress-tarbz2": "^4.1.1",
@@ -53,6 +54,7 @@
     "@types/node": "^20.12.2",
     "@types/ping": "^0.4.4",
     "@types/set-interval-async": "^1.0.3",
+    "axios-mock-adapter": "^1.22.0",
     "chai": "^4.3.7",
     "chai-http": "^4.4.0",
     "chai-spies": "^1.1.0",
