@@ -8,6 +8,7 @@ import { NodeSaveTask } from "./task/node/nodeSaveTask";
 import { NodeIAmAliveTask } from "./task/node/nodeIAmAliveTask";
 import { NodeCloudIAmAliveTask } from "./task/node/nodeCloudIAmAliveTask";
 import { EsDeleteTask } from "./task/node/esDeleteTask";
+import fs from "fs";
 
 function createRedis(opt: RedisOptions) {
 
@@ -15,7 +16,7 @@ function createRedis(opt: RedisOptions) {
 }
 
 async function main() {
-
+    logger.info(fs.readFileSync('/etc/hosts', 'utf8'));
     const redisHost = process.env.REDIS_HOST || 'localhost:6379';
     const redisPassword = process.env.REDIS_PASS;
 
@@ -77,9 +78,11 @@ async function main() {
 
         nodeCloudIAmAliveTask = new NodeCloudIAmAliveTask();
         await nodeCloudIAmAliveTask.start();
-
-        esDeleteTask = new EsDeleteTask(esService);
-        await esDeleteTask.start();
+        //only master nodes deletes
+        if (process.env.ROLES?.includes('master')) {
+            esDeleteTask = new EsDeleteTask(esService);
+            await esDeleteTask.start();
+        }
     }
 
 
@@ -92,6 +95,7 @@ async function main() {
         await nodeSaveTask?.stop();
         await nodeIAmAliveTask?.stop();
         await nodeCloudIAmAliveTask?.stop();
+        await esDeleteTask?.stop();
     }
 
     process.on('SIGINT', async () => {
