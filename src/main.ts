@@ -16,7 +16,7 @@ function createRedis(opt: RedisOptions) {
 }
 
 async function main() {
-    logger.info(fs.readFileSync('/etc/hosts', 'utf8'));
+
     const redisHost = process.env.REDIS_HOST || 'localhost:6379';
     const redisPassword = process.env.REDIS_PASS;
 
