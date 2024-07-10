@@ -25,7 +25,7 @@ export class NodeCloudIAmAliveTask extends NodeBasedTask {
             let options: AxiosRequestConfig = {
                 timeout: 15 * 1000,
                 headers: {
-                    ApiKey: this.cloudToken
+                    DomeApiKey: this.cloudId + ':' + this.cloudToken
                 }
             };
             let host = {
@@ -46,7 +46,7 @@ export class NodeCloudIAmAliveTask extends NodeBasedTask {
                 version: this.version,
                 roles: this.roles
             }
-            await Axios.post(this.cloudUrl + '/node/alive', host, options);
+            await Axios.post(this.cloudUrl + '/api/cloud/alive', host, options);
             this.lastCheck = new Date().getTime();
 
 
