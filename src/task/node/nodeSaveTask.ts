@@ -1,5 +1,5 @@
 import os from 'os';
-import { logger, RedisConfigService, RedisService, SystemLog, SystemLogService } from "rest.portal";
+import { logger, RedisConfigService, RedisService, SystemLog, SystemLogService, RedisConfigServiceConfigured } from "rest.portal";
 import { NodeBasedTask } from "./nodeBasedTask";
 const { setIntervalAsync, clearIntervalAsync } = require('set-interval-async');
 
@@ -12,10 +12,9 @@ export class NodeSaveTask extends NodeBasedTask {
     protected timer: any | null = null;
 
     protected lastCheckTime2 = new Date(1).getTime();
-    configService: RedisConfigService;
-    constructor(protected redis: RedisService, protected redisStream: RedisService, protected log: SystemLogService, encryptKey = '') {
+
+    constructor(protected redis: RedisService, protected redisStream: RedisService, protected configService: RedisConfigService, protected log: SystemLogService, encryptKey = '') {
         super();
-        this.configService = new RedisConfigService(this.redis, this.redisStream, this.log, encryptKey || this.encryptKey);
     }
     lastCheck = 0;
 
@@ -42,14 +41,12 @@ export class NodeSaveTask extends NodeBasedTask {
     }
 
     public override async start(): Promise<void> {
-        await this.configService.start();
         await this.check();
         this.timer = setIntervalAsync(async () => {
             await this.check();
         }, 5 * 1000);
     }
     public override async stop(): Promise<void> {
-        await this.configService.stop();
         try {
             if (this.timer)
                 clearIntervalAsync(this.timer);

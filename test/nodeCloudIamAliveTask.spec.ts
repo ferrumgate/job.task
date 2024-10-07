@@ -26,7 +26,7 @@ describe('NodeCloudIamAlive', () => {
 
         var mock = new MockAdapter(axios);
         let data = { isCalled: false };
-        mock.onPost('/node/alive').replyOnce(() => {
+        mock.onPost('/api/cloud/alive').replyOnce(() => {
             data.isCalled = true;
             return [200, data]
         });

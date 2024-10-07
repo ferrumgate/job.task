@@ -1,4 +1,4 @@
-import { ESServiceExtended, InputService, logger, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
+import { ESServiceExtended, InputService, logger, RedisConfigServiceConfigured, RedisConfigWatchCachedService, RedisService, SystemLogService, Util } from "rest.portal";
 import { BroadcastService } from "rest.portal/service/broadcastService";
 import { RedisOptions } from "./model/redisOptions";
 import { FqdnIntelligenceListsTask } from "./task/fqdnIntelligenceListsTask";
@@ -44,6 +44,8 @@ async function main() {
     const bcastService = new BroadcastService();
     const esIntelService = new ESServiceExtended(redisConfig, esHost, esUser, esPass);
     const esService = new ESServiceExtended(redisConfig, esHost, esUser, esPass);
+    const redisConfigConfigured = new RedisConfigServiceConfigured(redis, createRedis(redisOptions), systemLog, encryptKey, `job.task/${nodeId}`);
+    await redisConfigConfigured.start();
     //const esIntelService = new ESService(redisConfig, esIntelHost, esIntelUser, esIntelPass);
 
     //follow system
@@ -70,7 +72,7 @@ async function main() {
     let esDeleteTask: EsDeleteTask | null = null;
 
     if (process.env.MODULE_NODE == 'true') {
-        nodeSaveTask = new NodeSaveTask(redis, createRedis(redisOptions), systemLog, encryptKey);
+        nodeSaveTask = new NodeSaveTask(redis, createRedis(redisOptions), redisConfigConfigured, systemLog, encryptKey);
         await nodeSaveTask.start();
 
         nodeIAmAliveTask = new NodeIAmAliveTask(redis);
@@ -88,6 +90,7 @@ async function main() {
 
 
     async function stopEverything() {
+        await redisConfigConfigured.stop();
         await systemWatcher.stop();
         await redisConfig.stop();
         await ipIntelligenceListsTask?.stop();
