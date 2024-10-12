@@ -128,6 +128,8 @@ export class IpIntelligenceListsTask extends BaseTask {
         await this.executeES();
         await this.executeListsFiles();
     }
+    private getESIndexName(list: IpIntelligenceList) {
+    }
     /**
      * check es indexes to system lists
      */
@@ -139,7 +141,7 @@ export class IpIntelligenceListsTask extends BaseTask {
             const lists = await this.configService.getIpIntelligenceLists();
             const mappedLists = lists.map(y => {
                 return {
-                    index: `ip-intelligence-list-${y.id.toLowerCase()}`,
+                    index: ESService.generateIndexName(`ip-intelligence-list-${y.id.toLowerCase()}`),
                     item: y
                 }
             });

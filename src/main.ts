@@ -42,11 +42,11 @@ async function main() {
     const systemLog = new SystemLogService(redis, createRedis(redisOptions), encryptKey, `job.task/${nodeId}`);
     const redisConfig = new RedisConfigWatchCachedService(redis, createRedis(redisOptions), systemLog, true, encryptKey, `job.task/${nodeId}`);
     const bcastService = new BroadcastService();
-    const esIntelService = new ESServiceExtended(redisConfig, esHost, esUser, esPass);
-    const esService = new ESServiceExtended(redisConfig, esHost, esUser, esPass);
+    const esIntelService = ESServiceExtended.create(redisConfig, esHost, esUser, esPass);
+    const esService = ESServiceExtended.create(redisConfig, esHost, esUser, esPass);
     const redisConfigConfigured = new RedisConfigServiceConfigured(redis, createRedis(redisOptions), systemLog, encryptKey, `job.task/${nodeId}`);
     await redisConfigConfigured.start();
-    //const esIntelService = new ESService(redisConfig, esIntelHost, esIntelUser, esIntelPass);
+
 
     //follow system
     const systemWatcher = new SystemWatcherTask(redis, redisConfig, bcastService);
